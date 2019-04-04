@@ -168,7 +168,9 @@ def generate_operators(data, wavelet_name, samples, nb_scales=4,
     # Define the gradient/linear/fourier operators
     linear_op = Wavelet2(
         nb_scale=nb_scales,
-        wavelet_name=wavelet_name)
+        wavelet_name=wavelet_name,
+        padding_mode="periodization",
+    )
     if non_cartesian:
         fourier_op = NFFT(
             samples=samples,
