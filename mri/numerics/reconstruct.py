@@ -34,9 +34,9 @@ from modopt.opt.reweight import cwbReweight
 
 
 def sparse_rec_fista(gradient_op, linear_op, prox_op, cost_op,
-                     mu=1e-6, nb_scales=4, lambda_init=1.0, max_nb_of_iter=300,
-                     atol=1e-4, metric_call_period=5, metrics=None,
-                     verbose=0):
+                     mu=1e-6, lambda_init=1.0, max_nb_of_iter=300,
+                     metric_call_period=5, metrics=None,
+                     verbose=0, pov="synthesis", **lambda_update_params):
     """ The FISTA sparse reconstruction without reweightings.
 
     .. note:: At the moment, tested only with 2D data.
@@ -54,15 +54,11 @@ def sparse_rec_fista(gradient_op, linear_op, prox_op, cost_op,
         optimization.
     mu: float, (default 1e-6)
        coefficient of regularization.
-    nb_scales: int, default 4
-        the number of scales in the wavelet decomposition.
     lambda_init: float, (default 1.0)
         initial value for the FISTA step.
     max_nb_of_iter: int (optional, default 300)
         the maximum number of iterations in the Condat-Vu proximal-dual
         splitting algorithm.
-    atol: float (optional, default 1e-4)
-        tolerance threshold for convergence.
     metric_call_period: int (default 5)
         the period on which the metrics are compute.
     metrics: dict (optional, default None)
@@ -70,6 +66,10 @@ def sparse_rec_fista(gradient_op, linear_op, prox_op, cost_op,
         [@metric, metric_parameter]}. See modopt for the metrics API.
     verbose: int (optional, default 0)
         the verbosity level.
+    pov: str
+        either synthesis or analysis. Defaults to synthesis.
+    lambda_update_params: dict,
+        Parameters for the lambda update in FISTA mode
 
     Returns
     -------
@@ -103,11 +103,20 @@ def sparse_rec_fista(gradient_op, linear_op, prox_op, cost_op,
         print("-" * 40)
 
     # Define the proximity dual operator
-    weights = copy.deepcopy(alpha)
-    weights[...] = mu
-    prox_op.weights = weights
+    if pov == "synthesis":
+        weights = copy.deepcopy(alpha)
+        weights[...] = mu
+        prox_op.weights = weights
+    else:
+        weights = prox_op.linear_op.op(copy.deepcopy(alpha))
+        weights[...] = mu
+        prox_op.prox_op.weights = weights
 
     # Define the optimizer
+    beta_param = gradient_op.inv_spec_rad
+    if lambda_update_params.get("restart_strategy") == "greedy":
+        lambda_update_params["min_beta"] = gradient_op.inv_spec_rad
+        beta_param *= 1.3
     opt = ForwardBackward(
         x=alpha,
         grad=gradient_op,
@@ -117,7 +126,10 @@ def sparse_rec_fista(gradient_op, linear_op, prox_op, cost_op,
         metric_call_period=metric_call_period,
         metrics=metrics or {},
         linear=linear_op,
-        beta_param=gradient_op.inv_spec_rad)
+        beta_param=beta_param,
+        lambda_param=lambda_init,
+        **lambda_update_params,
+    )
     cost_op = opt._cost_func
 
     # Perform the reconstruction
@@ -140,7 +152,7 @@ def sparse_rec_fista(gradient_op, linear_op, prox_op, cost_op,
     else:
         costs = None
 
-    return x_final, linear_op.transform, costs, opt.metrics
+    return x_final, linear_op, costs, opt.metrics
 
 
 def sparse_rec_condatvu(gradient_op, linear_op, prox_dual_op, cost_op,
