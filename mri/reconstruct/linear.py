@@ -131,7 +131,7 @@ class WaveletUD(object):
     """The wavelet undecimated operator using pysap wrapper.
     """
 
-    def __init__(self, wavelet_id, nb_scale=4):
+    def __init__(self, wavelet_id, nb_scale=4, set_norm=None):
         self.wavelet_id = wavelet_id
         self.nb_scale = nb_scale
         self._opt = [
@@ -140,6 +140,7 @@ class WaveletUD(object):
         ]
         self._has_run = False
         self._shape = (None,)
+        self._norm = set_norm
 
     def _get_filters(self, shape):
         self.filters = get_mr_filters(
@@ -184,6 +185,8 @@ class WaveletUD(object):
         norm: float
             the L2 norm.
         """
+        if self._norm is not None:
+            return self._norm
         # Create fake data
         shape = numpy.asarray(shape)
         shape += shape % 2
