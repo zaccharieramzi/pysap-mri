@@ -131,13 +131,14 @@ class WaveletUD(object):
     """The wavelet undecimated operator using pysap wrapper.
     """
 
-    def __init__(self, wavelet_id, nb_scale=4, set_norm=None):
+    def __init__(self, wavelet_id, nb_scale=4, set_norm=None, coarse=True):
         self.wavelet_id = wavelet_id
         self.nb_scale = nb_scale
         self._opt = [
             '-t{}'.format(self.wavelet_id),
             '-n{}'.format(self.nb_scale),
         ]
+        self.coarse = coarse
         self._has_run = False
         self._shape = (None,)
         self._norm = set_norm
@@ -146,7 +147,7 @@ class WaveletUD(object):
         self.filters = get_mr_filters(
             tuple(shape),
             opt=self._opt,
-            coarse=True,
+            coarse=self.coarse,
         )
         self._has_run = True
         self._shape = shape
