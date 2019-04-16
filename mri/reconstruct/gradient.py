@@ -15,7 +15,7 @@ This module contains classes for defining algorithm operators and gradients.
 # Third party import
 import numpy as np
 from modopt.math.matrix import PowerMethod
-from modopt.opt.gradient import GradBasic
+from modopt.opt.gradient import GradBasic, GradParent
 
 
 class GradAnalysis2(GradBasic, PowerMethod):
@@ -27,6 +27,25 @@ class GradAnalysis2(GradBasic, PowerMethod):
         PowerMethod.__init__(self, self.trans_op_op, self.fourier_op.shape,
                              data_type=np.complex, auto_run=False)
         self.get_spec_rad(extra_factor=1.1)
+
+
+class GradProxDual(GradParent, PowerMethod):
+
+    def __init__(self, data, wav_op, shape):
+
+        GradParent.__init__(self, data, wav_op.adj_op, wav_op.op)
+        self.wav_op = wav_op
+        self.get_grad = self._get_grad_method
+        self.cost = self._cost_method
+        PowerMethod.__init__(self, self.trans_op_op, shape,
+                             data_type=np.complex, auto_run=False)
+        self.get_spec_rad(extra_factor=1.1)
+
+    def _get_grad_method(self, data):
+        self.grad = self.trans_op_op(data) + self.obs_data
+
+    def _cost_method(self, data):
+        return 0.5 * np.linalg.norm(self.op(data)) + np.vdot(data, self.obs_data)
 
 
 class GradSynthesis2(GradBasic, PowerMethod):
