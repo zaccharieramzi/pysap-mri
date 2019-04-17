@@ -75,7 +75,7 @@ def convert_locations_to_mask(samples_locations, img_shape):
     return mask
 
 
-def normalize_frequency_locations(samples, Kmax=None):
+def normalize_frequency_locations(samples, Kmax=None, Kmin=None):
     """
     This function normalize the samples locations between [-0.5; 0.5[ for
     the non-cartesian case
@@ -83,10 +83,13 @@ def normalize_frequency_locations(samples, Kmax=None):
     Parameters:
     -----------
     samples: np.ndarray
-        Unnormalized samples
-    Kmax: float
-        Maximum Frequency of the samples locations is supposed to be equal to
-        base Resolution / (2* Field of View)
+        Unnormalized samples of shape (n_samples, n_dimensions)
+    Kmax: array-like
+        Maximum Frequency of the samples locations (supposed to be equal to
+        base Resolution / (2* Field of View)). It can be different across axes.
+    Kmin: array-like
+        Minimum Frequency of the samples locations. It can be different
+        across axes.
 
     Return:
     -------
@@ -95,10 +98,16 @@ def normalize_frequency_locations(samples, Kmax=None):
     """
     samples_locations = np.copy(samples.astype('float'))
     if Kmax is None:
-        Kmax = [2*np.abs(samples_locations[:, dim]).max() for dim in
-                range(samples_locations.shape[-1])]
-    for dim in range(samples_locations.shape[-1]):
-        samples_locations[:, dim] /= Kmax[dim]
+        Kmax = np.max(samples_locations, axis=0)
+    else:
+        Kmax = np.array(Kmax)
+    if Kmin is None:
+        Kmin = np.min(samples_locations, axis=0)
+    else:
+        Kmin = np.array(Kmin)
+    samples_locations -= Kmin
+    samples_locations /= (Kmax - Kmin)
+    samples_locations -= 0.5
     if samples_locations.max() == 0.5:
         warnings.warn("Frequency equal to 0.5 will be put in -0.5")
         samples_locations[np.where(samples_locations == 0.5)] = -0.5
