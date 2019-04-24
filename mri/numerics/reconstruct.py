@@ -36,7 +36,9 @@ from modopt.opt.reweight import cwbReweight
 def sparse_rec_fista(gradient_op, linear_op, prox_op, cost_op,
                      mu=1e-6, lambda_init=1.0, max_nb_of_iter=300,
                      metric_call_period=5, metrics=None,
-                     verbose=0, pov="synthesis", iterative_prox=False, **lambda_update_params):
+                     verbose=0, pov="synthesis", iterative_prox=False,
+                     adaptative_precision=False, initial_precision_level=2,
+                     precision_increase_rate=2, **lambda_update_params):
     """ The FISTA sparse reconstruction without reweightings.
 
     .. note:: At the moment, tested only with 2D data.
@@ -132,6 +134,9 @@ def sparse_rec_fista(gradient_op, linear_op, prox_op, cost_op,
         beta_param=beta_param,
         lambda_param=lambda_init,
         iterative_prox=iterative_prox,
+        initial_precision_level=initial_precision_level,
+        adaptative_precision=adaptative_precision,
+        precision_increase_rate=precision_increase_rate,
         **lambda_update_params,
     )
     cost_op = opt._cost_func
