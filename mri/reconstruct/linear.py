@@ -131,11 +131,10 @@ class WaveletUD(object):
     """The wavelet undecimated operator using pysap wrapper.
     """
 
-    def __init__(self, wavelet_id, nb_scale=4, set_norm=None, coarse=True, trim=True, parallel=True):
+    def __init__(self, wavelet_id, nb_scale=4, set_norm=None, coarse=True, trim=True):
         self.wavelet_id = wavelet_id
         self.nb_scale = nb_scale
         self.trim = trim
-        self.parallel = parallel
         self._opt = [
             '-t{}'.format(self.wavelet_id),
             '-n{}'.format(self.nb_scale),
@@ -159,8 +158,8 @@ class WaveletUD(object):
     def op(self, data):
         if not self._has_run or data.shape != self._shape:
             self._get_filters(data.shape)
-        coefs_real = filter_convolve(data.real, self.filters, parallel=self.parallel)
-        coefs_imag = filter_convolve(data.imag, self.filters, parallel=self.parallel)
+        coefs_real = filter_convolve(data.real, self.filters)
+        coefs_imag = filter_convolve(data.imag, self.filters)
         # NOTE : if we need to flatten the coefs we will do it here
         return coefs_real + 1j * coefs_imag
 
@@ -169,8 +168,8 @@ class WaveletUD(object):
             raise RuntimeError(
                 "`op` must be run before `adj_op` to get the data shape",
             )
-        data_real = filter_convolve(coefs.real, self.filters, filter_rot=True, parallel=self.parallel)
-        data_imag = filter_convolve(coefs.imag, self.filters, filter_rot=True, parallel=self.parallel)
+        data_real = filter_convolve(coefs.real, self.filters, filter_rot=True)
+        data_imag = filter_convolve(coefs.imag, self.filters, filter_rot=True)
         # NOTE : if we need to flatten the coefs we will need to unflatten
         # them before
         return data_real + 1j * data_imag
