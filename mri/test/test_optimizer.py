@@ -70,16 +70,14 @@ class TestOptimizer(unittest.TestCase):
                         data=data,
                         fourier_op=fourier_op,
                         linear_op=linear_op)
-                    prox_op = Threshold(None)
+                    prox_op = Threshold(0)
                     x_final, transform, _, _ = sparse_rec_fista(
                         gradient_op=gradient_op,
                         linear_op=linear_op,
                         prox_op=prox_op,
                         cost_op=None,
-                        mu=0,
                         lambda_init=1.0,
                         max_nb_of_iter=self.nb_iter,
-                        atol=1e-4,
                         verbose=0)
                     fourier_0 = FFT2(samples=convert_mask_to_locations(
                                             fftshift(self.mask)),
@@ -120,7 +118,7 @@ class TestOptimizer(unittest.TestCase):
                     gradient_op = GradAnalysis2(
                         data=data,
                         fourier_op=fourier_op)
-                    prox_dual_op = Threshold(None)
+                    prox_dual_op = Threshold(0)
                     x_final, transform, _, _ = sparse_rec_condatvu(
                         gradient_op=gradient_op,
                         linear_op=linear_op,
@@ -129,7 +127,6 @@ class TestOptimizer(unittest.TestCase):
                         std_est=0.0,
                         std_est_method="dual",
                         std_thr=0,
-                        mu=0,
                         tau=None,
                         sigma=None,
                         relaxation_factor=1.0,
@@ -178,16 +175,14 @@ class TestOptimizer(unittest.TestCase):
                         data=data,
                         fourier_op=fourier_op,
                         linear_op=linear_op)
-                    prox_op = Threshold(None)
+                    prox_op = Threshold(0)
                     x_final, transform, _, _ = sparse_rec_fista(
                         gradient_op=gradient_op,
                         linear_op=linear_op,
                         prox_op=prox_op,
                         cost_op=None,
-                        mu=0,
                         lambda_init=1.0,
                         max_nb_of_iter=self.nb_iter,
-                        atol=1e-4,
                         verbose=0)
                     fourier_0 = FFT2(samples=convert_mask_to_locations(
                                             fftshift(self.mask)),
@@ -226,7 +221,7 @@ class TestOptimizer(unittest.TestCase):
                     gradient_op = GradAnalysis2(
                         data=data,
                         fourier_op=fourier_op)
-                    prox_dual_op = Threshold(None)
+                    prox_dual_op = Threshold(0)
                     x_final, transform, _, _ = sparse_rec_condatvu(
                         gradient_op=gradient_op,
                         linear_op=linear_op,
@@ -235,7 +230,6 @@ class TestOptimizer(unittest.TestCase):
                         std_est=0.0,
                         std_est_method="dual",
                         std_thr=0,
-                        mu=0,
                         tau=None,
                         sigma=None,
                         relaxation_factor=1.0,
